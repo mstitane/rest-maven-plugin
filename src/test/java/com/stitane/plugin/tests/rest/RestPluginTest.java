@@ -1,10 +1,16 @@
-package com.github.cjnygard.mvn.rest;
+package com.stitane.plugin.tests.rest;
 
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.junit.Test;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class PluginTest
+import com.stitane.rest.plugin.RestPlugin;
+
+public class RestPluginTest
         extends AbstractMojoTestCase {
 
     /**
@@ -45,52 +51,14 @@ public class PluginTest
      * @return
      * @throws Exception if any
      */
-    protected Plugin loadPlugin()
+    protected RestPlugin loadPlugin()
             throws Exception {
         File pom = getTestFile("src/test/resources/unit/rest-project/pom.xml");
         assertNotNull(pom);
         assertTrue(pom.exists());
 
-        Plugin myPlugin = (Plugin) lookupMojo("rest-request", pom);
+        RestPlugin myPlugin = (RestPlugin) lookupMojo("rest-request", pom);
         return myPlugin;
-    }
-
-/** For whatever reason these resources are not injected by the
- * MojoTest environment
- *
-
-    public void testProjectInjection()
-            throws Exception {
-        Plugin myPlugin = loadPlugin();
-        assertNotNull(myPlugin.getProject());
-    }
-
-    public void testBuildContextInjection()
-            throws Exception {
-        Plugin myPlugin = loadPlugin();
-        assertNotNull(myPlugin.getBuildContext());
-    }
-
-    public void testExecutionInjection()
-            throws Exception {
-        Plugin myPlugin = loadPlugin();
-        assertNotNull(myPlugin.getExecution());
-    }
-**/
-
-    /**
-     * @throws Exception if any
-     */
-    public void testExecution()
-            throws Exception {
-        try {
-            Plugin myPlugin = loadPlugin();
-            assertNotNull("Null Plugin", myPlugin);
-//            myPlugin.execute();
-        } catch (InvocationTargetException ex) {
-            System.out.println("oops!" + ex.getCause().toString());
-        }
-
     }
 
     /**
@@ -99,14 +67,26 @@ public class PluginTest
     public void testEndpoint()
             throws Exception {
         try {
-            Plugin myPlugin = loadPlugin();
-            String url="http://docker:3001/md2pdf";
+            RestPlugin myPlugin = loadPlugin();
+            String url="http://perf1.opencellsoft.com:8886";
             assertNotNull("Null Plugin", myPlugin);
             assertNotNull("Null", myPlugin.getEndpoint());
-            assertTrue("Expected [" + url +
-                       "] Not equal to:[" +
+            assertTrue("Expected [" + url + "] Not equal to:[" +
                        myPlugin.getEndpoint().toString() + "]",
                        myPlugin.getEndpoint().toString().equals(url));
+        } catch (InvocationTargetException ex) {
+            System.out.println("oops!" + ex.getCause().toString());
+        }
+    }
+    /**
+     * @throws Exception if any
+     */
+    public void testFileset()
+            throws Exception {
+        try {
+            RestPlugin myPlugin = loadPlugin();
+            assertNotNull("Null Plugin", myPlugin);
+            assertNotNull("Null Fileset", myPlugin.getFileset());
         } catch (InvocationTargetException ex) {
             System.out.println("oops!" + ex.getCause().toString());
         }
@@ -115,15 +95,28 @@ public class PluginTest
     /**
      * @throws Exception if any
      */
-    public void testFileset()
+    public void testSaveResponse()
             throws Exception {
         try {
-            Plugin myPlugin = loadPlugin();
+            RestPlugin myPlugin = loadPlugin();
             assertNotNull("Null Plugin", myPlugin);
-            assertNotNull("Null Fileset", myPlugin.getFileset());
+            assertNotNull("Null save response", myPlugin.getSaveResponse());
+            assertFalse("save response is false", myPlugin.getSaveResponse());
         } catch (InvocationTargetException ex) {
             System.out.println("oops!" + ex.getCause().toString());
         }
-
+    }
+    /**
+     * @throws Exception if any
+     */
+    public void testConvertJavaFiles()
+            throws Exception {
+        try {
+            RestPlugin myPlugin = loadPlugin();
+            assertNotNull("Null Plugin", myPlugin);
+            myPlugin.execute();
+        } catch (InvocationTargetException ex) {
+            System.out.println("oops!" + ex.getCause().toString());
+        }
     }
 }

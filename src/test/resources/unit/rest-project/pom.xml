@@ -1,77 +1,75 @@
 <project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.github.cjnygard</groupId>
-  <artifactId>rest-maven-plugin-test</artifactId>
-  <version>0.1.5-SNAPSHOT</version>
-  <packaging>jar</packaging>
+    <groupId>com.stitane.plugins</groupId>
+    <artifactId>rest-maven-plugin-test</artifactId>
+    <version>0.1.6</version>
+    <packaging>jar</packaging>
 
-  <name>REST Request Maven Plugin Test</name>
+    <name>REST Request Maven Plugin Test</name>
 
-  <properties>
-    <rest-maven-plugin.version>${project.version}</rest-maven-plugin.version>
-  </properties>
+    <properties>
+        <rest-maven-plugin.version>${project.version}</rest-maven-plugin.version>
+        <opencell.version>8.0.0-SNAPSHOT</opencell.version>
+        <java.version>8</java.version>
+        <!-- the configured directory for externals lib used in opencell-->
+        <output.directory>/tmp/libs</output.directory>
+        <!--opencell.username:opencell.password encoded with base64 -->
+        <opencell.authorization>b3BlbmNlbGwuc3VwZXJhZG1pbjpvcGVuY2VsbC5zdXBlcmFkbWlu</opencell.authorization>
+        <scripts.directory>${project.basedir}/src/main/resources/scripts</scripts.directory>
+        <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.github.cjnygard</groupId>
-      <artifactId>rest-maven-plugin</artifactId>
-      <version>${rest-maven-plugin.version}</version>
-    </dependency>
-  </dependencies>
+    </properties>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <includes>
-          <include>**/*.md</include>
-        </includes>
-        <filtering>false</filtering>
-      </resource>
-      <resource>
-        <directory>src/main/resources/xsd</directory>
-        <includes>
-          <include>*.xsd</include>
-        </includes>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <groupId>com.github.cjnygard</groupId>
-        <artifactId>rest-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>compile</phase>
-            <goals>
-              <goal>rest-request
-              </goal>
-            </goals>
-            <configuration>
-              <endpoint>http://docker:3001/md2pdf</endpoint>
-              <fileset>
-                <include>*.md</include>
-                <directory>${project.resources[0].directory}/test.md</directory>
-              </fileset>
-              <outputDir>${project.build.directory}/docs</outputDir>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <endpoint>http://docker:3001/md2pdf</endpoint>
-          <fileset>
-            <include>*.md</include>
-            <directory>${project.resources[0].directory}/test</directory>
-          </fileset>
-          <outputDir>${project.build.directory}/docs</outputDir>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.stitane.plugins</groupId>
+            <artifactId>rest-maven-plugin</artifactId>
+            <version>${rest-maven-plugin.version}</version>
+        </dependency>
+    </dependencies>
 
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.stitane.plugins</groupId>
+                <artifactId>rest-maven-plugin</artifactId>
+                <version>${rest-maven-plugin.version}</version>
+                <configuration>
+                    <endpoint>http://perf1.opencellsoft.com:8886</endpoint>
+                    <resource>/opencell/api/rest/scriptInstance/createOrUpdate</resource>
+                    <method>POST</method>
+                    <saveResponse>false</saveResponse>
+                    <outputDir>/target/scripts/</outputDir>
+                    <!--<inputDir>src/main/java/com/stitane/rest/utils</inputDir>-->
+                    <javaFile>C:\Users\mohammed\IdeaProjects\rest-maven-plugin\src\main\java\com\stitane\rest\utils\ErrorInfo.java</javaFile>
+                    <headers>
+                        <Authorization>Basic ${opencell.authorization}</Authorization>
+                        <Accept>*/*</Accept>
+                    </headers>
+                    <requestType>
+                        <type>application</type>
+                        <subtype>xml</subtype>
+                    </requestType>
+                    <fileset>
+                        <directory>C:\Users\mohammed\IdeaProjects\rest-maven-plugin\target\scripts</directory>
+                        <includes>
+                            <include>*.xml</include>
+                        </includes>
+                    </fileset>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.stitane.plugins</groupId>
+                        <artifactId>rest-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
 </project>

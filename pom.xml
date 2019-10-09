@@ -9,22 +9,22 @@
     <version>38</version>
   </parent>
 
-  <groupId>com.github.cjnygard</groupId>
+  <groupId>com.stitane.plugins</groupId>
   <artifactId>rest-maven-plugin</artifactId>
-  <version>0.1.5-SNAPSHOT</version>
+  <version>0.1.6</version>
   <packaging>maven-plugin</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
 
   <description>The REST Request Maven Plugin is meant to provide an
-  easy way to interface to REST services via the POST operation to
+  easy way to convert a java file into xml files and to interface to REST services via the POST operation to
   send data files to the REST URL and retrieve (and store) the
   results.</description>
 
   <!-- mvn -Prelease release:clean release:prepare -->
   <!-- mvn -Prelease release:perform -->
   <!-- cd target/checkout && mvn -Prelease nexus-staging:release -->
-  <url>http://github.com/cjnygard/rest-maven-plugin</url>
+  <url>http://github.com/mstitane/rest-maven-plugin</url>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -33,17 +33,17 @@
   </licenses>
   <developers>
     <developer>
-      <name>Carl Nygard</name>
-      <email>cjnygard@gmail.com</email>
+      <name>Mohamed STITANE</name>
+      <email>m.stitane@gmail.com</email>
       <organization>Self</organization>
-      <organizationUrl>http://github.com/cjnygard</organizationUrl>
+      <organizationUrl>http://github.com/mstitane</organizationUrl>
     </developer>
   </developers>
   <scm>
-    <developerConnection>scm:git:ssh://git@github.com/cjnygard/rest-maven-plugin.git</developerConnection>
-    <connection>scm:git:https://github.com/cjnygard/rest-maven-plugin.git</connection>
-    <url>https://github.com/cjnygard/rest-maven-plugin.git</url>
-    <tag>rest-maven-plugin-0.1.3</tag>
+    <developerConnection>scm:git:ssh://git@github.com/mstitane/rest-maven-plugin.git</developerConnection>
+    <connection>scm:git:https://github.com/mstitane/rest-maven-plugin.git</connection>
+    <url>https://github.com/mstitane/rest-maven-plugin.git</url>
+    <tag>rest-maven-plugin-0.1.6</tag>
   </scm>
 
   <properties>
@@ -240,7 +240,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.2.3</version>
+      <version>2.9.9</version>
     </dependency>
 
     <dependency>
@@ -252,7 +252,12 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.2.3</version>
+      <version>2.9.9</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>2.9.9</version>
     </dependency>
 
   </dependencies>
@@ -458,6 +463,14 @@
           </dependency>
         </dependencies>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <target>8</target>
+                <source>8</source>
+            </configuration>
+        </plugin>
 
     </plugins>
   </build>
