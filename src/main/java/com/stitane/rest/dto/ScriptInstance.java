@@ -48,6 +48,6 @@ public class ScriptInstance {
 
     @Override
     public String toString() {
-        return "ScriptInstanceDto{" + "code='" + code + '\'' + ", description='" + description + '\'' + ", type='" + type + '\'' + ", script=''}";
+        return "ScriptInstance{" + "code='" + code + '\'' + ", description='" + description + '\'' + ", type='" + type + '\'' + ", script=''}";
     }
 }

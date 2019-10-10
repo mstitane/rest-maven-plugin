@@ -19,8 +19,6 @@
         <!-- the configured directory for externals lib used in opencell-->
         <output.directory>/tmp/libs</output.directory>
         <!--opencell.username:opencell.password encoded with base64 -->
-        <opencell.authorization>b3BlbmNlbGwuc3VwZXJhZG1pbjpvcGVuY2VsbC5zdXBlcmFkbWlu</opencell.authorization>
-        <scripts.directory>${project.basedir}/src/main/resources/scripts</scripts.directory>
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
 
     </properties>
@@ -40,25 +38,25 @@
                 <artifactId>rest-maven-plugin</artifactId>
                 <version>${rest-maven-plugin.version}</version>
                 <configuration>
-                    <endpoint>http://perf1.opencellsoft.com:8886</endpoint>
+                    <endpoint>http://localhost:8080</endpoint>
                     <resource>/opencell/api/rest/scriptInstance/createOrUpdate</resource>
                     <method>POST</method>
-                    <saveResponse>false</saveResponse>
+                    <saveResponse>true</saveResponse>
                     <outputDir>/target/scripts/</outputDir>
                     <!--<inputDir>src/main/java/com/stitane/rest/utils</inputDir>-->
                     <javaFile>C:\Users\mohammed\IdeaProjects\rest-maven-plugin\src\main\java\com\stitane\rest\utils\ErrorInfo.java</javaFile>
                     <headers>
-                        <Authorization>Basic ${opencell.authorization}</Authorization>
+                        <Authorization>Basic b3BlbmNlbGwuYWRtaW46b3BlbmNlbGwuYWRtaW4=</Authorization>
                         <Accept>*/*</Accept>
                     </headers>
                     <requestType>
                         <type>application</type>
-                        <subtype>xml</subtype>
+                        <subtype>json</subtype>
                     </requestType>
                     <fileset>
                         <directory>C:\Users\mohammed\IdeaProjects\rest-maven-plugin\target\scripts</directory>
                         <includes>
-                            <include>*.xml</include>
+                            <include>*.json</include>
                         </includes>
                     </fileset>
                 </configuration>

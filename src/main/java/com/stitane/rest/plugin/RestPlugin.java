@@ -28,6 +28,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.stitane.rest.dto.ScriptInstance;
 import com.stitane.rest.utils.ErrorInfo;
@@ -66,6 +68,14 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.components.io.filemappers.FileMapper;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -83,7 +93,6 @@ public class RestPlugin extends AbstractMojo {
 
     private static final String PACKAGE_PATTERN = "package([\\s)+\\w\\\\.]+)";
     private static final String CLASSNAME_PATTERN = "(?<=\\n|\\A)(?:public\\s)?(class|interface|enum)\\s([^\\n\\s]*)";
-    private static final String JAVADOC_REGEX_PATTERN = "/\\*.*\\*/(.*)(?=public class)";
 
     @Parameter(defaultValue = "${session}", readonly = true)
     private MavenSession session;
@@ -575,19 +584,18 @@ public class RestPlugin extends AbstractMojo {
     }
 
     private ErrorInfo processResponse(Response response, String outputFilename) {
+        if (Boolean.TRUE.equals(getSaveResponse())) {
+            InputStream in = response.readEntity(InputStream.class);
+            try {
+                File of = new File(getOutputDir(), outputFilename + ".response");
+                pipeToFile(in, of);
+            } catch (IOException ex) {
+                getLog().debug(String.format("IOException: [%s]", ex.toString()));
+                return new ErrorInfo(String.format("IOException: [%s]", ex.getMessage()));
+            }
+        }
         if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
             getLog().debug(String.format("Status: [%d]", response.getStatus()));
-            if (Boolean.TRUE.equals(getSaveResponse())) {
-                InputStream in = response.readEntity(InputStream.class);
-                try {
-                    File of = new File(getOutputDir(), outputFilename);
-                    pipeToFile(in, of);
-                } catch (IOException ex) {
-                    getLog().debug(String.format("IOException: [%s]", ex.toString()));
-                    return new ErrorInfo(String.format("IOException: [%s]", ex.getMessage()));
-                }
-            }
-
         } else {
             getLog().warn(String.format("Error code: [%d]", response.getStatus()));
             getLog().debug(response.getEntity().toString());
@@ -597,23 +605,59 @@ public class RestPlugin extends AbstractMojo {
     }
 
     private void processConversion(List<File> javaFiles, File outDir) {
-        XmlMapper xmlMapper = new XmlMapper();
+        ObjectMapper mapper = new ObjectMapper();
         for (File file : javaFiles) {
             ScriptInstance dto = new ScriptInstance();
             try {
                 String source = new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
                 String code = getFullClassName(source);
-                String description = getDescription(source);
+                String description = getDescription(source) + getGitInformation(file) ;
                 dto.setDescription(description);
                 dto.setScript(source);
                 dto.setCode(code);
 
-                xmlMapper.writeValue(new File(outDir, dto.getCode().concat(".xml")) , dto);
+                mapper.writeValue(new File(outDir, dto.getCode().concat(".json")) , dto);
 
             } catch (Exception e) {
                 getLog().error("Error when reading " + file.getName());
             }
         }
+    }
+
+    private String getGitInformation(File file) {
+        String result = "";
+        try {
+            //Load repository
+            FileRepositoryBuilder builder = new FileRepositoryBuilder();
+            Repository repository = builder.setGitDir(new File(".git")).setMustExist(true).build();
+            Git git = new Git(repository);
+            Ref head = repository.findRef("HEAD");
+
+            // a RevWalk allows to walk over commits based on some filtering that is defined
+            String name;
+            String time;
+            try (RevWalk walk = new RevWalk(repository)) {
+                RevCommit commit = walk.parseCommit(head.getObjectId());
+                RevTree tree = commit.getTree();
+                name = commit.getAuthorIdent().getName();
+                time = LocalDateTime.ofEpochSecond(commit.getCommitTime(), 0, ZoneOffset.UTC).toString();
+
+                getLog().info("file " + file);
+                String path = file.getPath().substring(file.getPath().indexOf("src")).replaceAll("\\\\", "/");
+                getLog().info("path " + path);
+                TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
+
+                if (treeWalk == null) {
+                    getLog().info("Did not find expected file '" + path + "' in tree '" + tree.getName() + "'");
+                } else {
+                    result = String.format("\tLast updated By %s on %s", name, time);
+                }
+            }
+            git.close();
+        } catch (Exception e) {
+            getLog().error("can not get git information for file " + file.getName());
+        }
+        return result;
     }
 
     private String patternMatches(String source, String regex, int group) {
@@ -628,7 +672,17 @@ public class RestPlugin extends AbstractMojo {
     }
 
     private String getDescription(String source) {
-        return patternMatches(source, JAVADOC_REGEX_PATTERN, 1);
+        int i = source.lastIndexOf("/**") + 3;
+        int j = source.lastIndexOf("public class") - 2;
+
+        String javadoc = source.substring(i, j);
+
+        javadoc = javadoc.trim();
+        javadoc = javadoc.replaceAll("\\r|\\n", "");
+        javadoc = javadoc.replaceAll("\\s\\*|\\*\\s", "");
+        javadoc = javadoc.replaceAll("\\*/", "");
+        javadoc = javadoc.replaceAll("/", "");
+        return javadoc;
     }
 
     private String getFullClassName(String source) {

@@ -2,15 +2,7 @@
 
 Welcome to the rest-maven-plugin plugin for Apache Maven 3.
 
-This plugin is meant to provide an easy way to interface to REST
-services via the POST operation to send data files to the REST URL and
-retrieve (and store) the results.  It also provides a means to perform a 
-simple GET operation on a URL to retrieve and store the results.
-
-One typical example is to send *.md documentation files to a
-markdown-to-pdf conversion service (see
-http://github.com/cjnygard/md2pdf) and store the resulting *.pdf file
-locally.
+This plugin is meant to provide an easy way to convert java files to xml format and send it to the opencell REST URL for script instance creation.
 
 ## Available goals
 

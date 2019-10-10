@@ -68,7 +68,7 @@ public class RestPluginTest
             throws Exception {
         try {
             RestPlugin myPlugin = loadPlugin();
-            String url="http://perf1.opencellsoft.com:8886";
+            String url="http://localhost:8080";
             assertNotNull("Null Plugin", myPlugin);
             assertNotNull("Null", myPlugin.getEndpoint());
             assertTrue("Expected [" + url + "] Not equal to:[" +
